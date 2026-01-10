@@ -1,0 +1,70 @@
+services:
+  app:
+    build: ./docker/php84
+    container_name: laravel-app
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www
+    environment:
+      TZ: America/Sao_Paulo
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+    depends_on:
+      - localstack
+    networks:
+      - laravel-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: laravel-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www
+      - type: bind
+        source: ./docker/nginx/default.conf
+        target: /etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - laravel-net
+
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    environment:
+      SERVICES: logs
+      DEBUG: 1
+      AWS_DEFAULT_REGION: us-east-1
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - laravel-net
+
+  aws-cli:
+    image: amazon/aws-cli:2.15.0
+    container_name: aws-cli
+    depends_on:
+      - localstack
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+    entrypoint: ["/bin/sh"]
+    tty: true
+    networks:
+      - laravel-net
+
+volumes:
+  localstack-data:
+
+networks:
+  laravel-net:
+    driver: bridge

@@ -1,16 +1,35 @@
 services:
-  app:
-    build: ./docker/php84
+  laravel-app:
+    build: ./.docker/php84
     container_name: laravel-app
     working_dir: /var/www
     volumes:
-      - ./src:/var/www
+      - ./laravel-app:/var/www
     environment:
       TZ: America/Sao_Paulo
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       AWS_DEFAULT_REGION: us-east-1
       AWS_ENDPOINT_URL: http://localstack:4566
+    depends_on:
+      - localstack
+    networks:
+      - laravel-net
+
+  chalice-app:
+    build: ./.docker/python313
+    container_name: chalice-app
+    working_dir: /app
+    volumes:
+      - ./chalice-app:/app
+    environment:
+      TZ: America/Sao_Paulo
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ENDPOINT_URL: http://localstack:4566
+    ports:
+      - "8000:8000"
     depends_on:
       - localstack
     networks:
@@ -38,7 +57,7 @@ services:
       - "4566:4566"
       - "4510-4559:4510-4559"
     environment:
-      SERVICES: logs
+      SERVICES: logs,lambda
       DEBUG: 1
       AWS_DEFAULT_REGION: us-east-1
     volumes:

@@ -1,0 +1,14 @@
+{
+    "version": "1.0",
+    "app_name": "chalice-app",
+    "lambda_memory_size": 256,
+    "lambda_python_version": "python3.12",
+    "local": {
+        "api_gateway_stage": "local",
+        "lambda_python_version": "python3.12",
+        "manage_iam_role": false,
+        "environment_variables": {
+            "APP_ENV": "local"
+        }
+    }
+}

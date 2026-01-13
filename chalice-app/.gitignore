@@ -1,0 +1,56 @@
+# Byte-compiled / caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment files
+.env
+*.env
+
+# Dependency / build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+package/
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# Chalice
+.chalice/deployed.json
+.chalice/deployed-*
+.chalice/deployments/
+.chalice/*.zip
+.chalice/*.sam.json
+
+# AWS credentials (local)
+.aws/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

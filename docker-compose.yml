@@ -4,15 +4,31 @@ services:
     container_name: laravel-app
     working_dir: /var/www
     volumes:
-      - ./laravel-app:/var/www
+      - ./src:/var/www
+      - ./.docker/php84/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini:ro
+    ports:
+      - "${XDEBUG_PORT:-9003}:9003"
     environment:
-      TZ: America/Sao_Paulo
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ENDPOINT_URL: http://localstack:4566
+      TZ: ${TZ:-UTC}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL:-http://localstack:4566}
+      XDEBUG_MODE: "${XDEBUG_MODE:-debug,develop}"
+      XDEBUG_START_WITH_REQUEST: "${XDEBUG_START_WITH_REQUEST:-yes}"
+      XDEBUG_DISCOVER_CLIENT_HOST: "${XDEBUG_DISCOVER_CLIENT_HOST:-1}"
+      XDEBUG_CLIENT_HOST: "${XDEBUG_CLIENT_HOST:-}"
+      XDEBUG_CLIENT_PORT: "${XDEBUG_CLIENT_PORT:-9003}"
+      XDEBUG_IDEKEY: "${XDEBUG_IDEKEY:-PHPSTORM}"
+      XDEBUG_LOG: "${XDEBUG_LOG:-/tmp/xdebug.log}"
+      XDEBUG_LOG_LEVEL: "${XDEBUG_LOG_LEVEL:-0}"
     depends_on:
-      - localstack
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_started
     networks:
       - laravel-net
 
@@ -23,28 +39,30 @@ services:
     volumes:
       - ./chalice-app:/app
     environment:
-      TZ: America/Sao_Paulo
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ENDPOINT_URL: http://localstack:4566
+      TZ: ${TZ:-UTC}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL:-http://localstack:4566}
     ports:
       - "8000:8000"
     depends_on:
-      - localstack
+      localstack:
+        condition: service_started
     networks:
       - laravel-net
 
   nginx:
     image: nginx:alpine
-    container_name: laravel-nginx
+    container_name: nginx
     ports:
-      - "8080:80"
+      - "${NGINX_PORT:-8080}:80"
     volumes:
       - ./src:/var/www
       - type: bind
         source: ./.docker/nginx/default.conf
         target: /etc/nginx/conf.d/default.conf
+        read_only: true
     depends_on:
       - laravel-app
     networks:
@@ -57,9 +75,10 @@ services:
       - "4566:4566"
       - "4510-4559:4510-4559"
     environment:
-      SERVICES: logs,lambda
-      DEBUG: 1
-      AWS_DEFAULT_REGION: us-east-1
+      TZ: ${TZ:-UTC}
+      SERVICES: ${LOCALSTACK_SERVICES:-logs,lambda,sqs}
+      DEBUG: ${LOCALSTACK_DEBUG:-1}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
     volumes:
       - localstack-data:/var/lib/localstack
       - "/var/run/docker.sock:/var/run/docker.sock"
@@ -72,17 +91,57 @@ services:
     depends_on:
       - localstack
     environment:
-      AWS_ACCESS_KEY_ID: test
-      AWS_SECRET_ACCESS_KEY: test
-      AWS_DEFAULT_REGION: us-east-1
-      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL:-http://localstack:4566}
     entrypoint: ["/bin/sh"]
     tty: true
     networks:
       - laravel-net
 
+  redis:
+    image: "redis:alpine"
+    container_name: redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - "redis-data:/data"
+    networks:
+      - laravel-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mysql:
+    build: ./.docker/mysql
+    container_name: mysql
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-}"
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: "${DB_DATABASE:-laravel}"
+      MYSQL_USER: "${DB_USERNAME:-laravel}"
+      MYSQL_PASSWORD: "${DB_PASSWORD:-secret}"
+      MYSQL_ALLOW_EMPTY_PASSWORD: 1
+      MYSQL_EXTRA_OPTIONS: "${MYSQL_EXTRA_OPTIONS:-}"
+    volumes:
+      - "mysql-data:/var/lib/mysql"
+    networks:
+      - laravel-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_ROOT_PASSWORD:-}"]
+      retries: 3
+      timeout: 5s
+      interval: 5s
+
 volumes:
   localstack-data:
+  redis-data:
+  mysql-data:
 
 networks:
   laravel-net:

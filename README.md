@@ -14,10 +14,10 @@ cd cloudwatch-playground
 ```
 2. Inicie os serviços com Docker Compose:
 ```bash
-   docker-compose up -d --build
+   docker compose up -d --build
 ```
 
 3. Acesse o container da aplicação Laravel:
 ```bash
-docker exec -it -u $(id -u) laravel-app bash
+docker compose exec laravel-app bash
 ```

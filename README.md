@@ -35,3 +35,28 @@ docker compose exec -it laravel-app bash
 ```bash
 docker compose exec -it chalice-app sh
 ```
+- Para acessar o container contendo o aws-cli:
+```bash
+docker compose exec -it aws-cli sh
+```
+## Visualizando os logs no CloudWatch
+1. Acesse o container do aws-cli:
+```bash
+docker compose exec -it aws-cli sh
+```
+2. Liste os grupos de logs para verificar se o grupo do Laravel foi criado:
+```bash
+aws logs describe-log-groups
+```
+3. Liste os streams de logs dentro do grupo do Laravel para verificar se o stream foi criado:
+```bash
+aws logs describe-log-streams --log-group-name laravel_app
+```
+4. Visualize os logs do stream para verificar se os logs estão sendo enviados corretamente:
+```bash
+aws logs get-log-events --log-group-name laravel_app --log-stream-name laravel_app
+```
+5. Para visualizar os logs em tempo real, você pode usar o comando `aws logs tail`:
+```bash
+aws logs tail laravel_app --follow
+```

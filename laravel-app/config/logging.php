@@ -129,12 +129,12 @@ return [
 
         'cloudwatch' => [
             'driver' => 'custom',
-            'name' => env('CW_LOG_NAME', ''),
-            'region' => env('CW_DEFAULT_REGION', ''),
+            'name' => env('CW_LOG_NAME', 'laravel_app'),
+            'region' => env('CW_DEFAULT_REGION', 'us-east-1'),
             'credentials' => [
-                'key' => env('CW_ACCESS_KEY_ID', ''),
-                'secret' => env('CW_SECRET_ACCESS_KEY', ''),
-                'endpoint' => env('CW_ENDPOINT_URL', ''),
+                'key' => env('CW_ACCESS_KEY_ID', 'test'),
+                'secret' => env('CW_SECRET_ACCESS_KEY', 'test'),
+                'endpoint' => env('CW_ENDPOINT_URL', 'http://localstack:4566'),
             ],
             'stream_name' => env('CW_LOG_NAME', 'laravel_app'),
             'retention' => env('CW_LOG_RETENTION_DAYS', 14),
@@ -143,7 +143,6 @@ return [
             'formatter' => \Monolog\Formatter\JsonFormatter::class,
             'batch_size' => env('CW_LOG_BATCH_SIZE', 10000),
             'via' => \Pagevamp\Logger::class,
-            'handler' => \App\Logging\CloudWatchHandler::class,
         ],
     ],
 

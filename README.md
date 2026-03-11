@@ -54,15 +54,15 @@ aws logs describe-log-groups
 
 3. Liste os streams de logs dentro do grupo do Laravel para verificar se o stream foi criado:
 ```bash
-aws logs describe-log-streams --log-group-name laravel_app
+aws logs describe-log-streams --log-group-name local/laravel_app
 ```
 
 4. Visualize os logs do stream para verificar se os logs estão sendo enviados corretamente:
 ```bash
-aws logs get-log-events --log-group-name laravel_app --log-stream-name laravel_app
+aws logs get-log-events --log-group-name local/laravel_app --log-stream-name laravel_app-instance-01
 ```
 
 5. Para visualizar os logs em tempo real, você pode usar o comando `aws logs tail`:
 ```bash
-aws logs tail laravel_app --follow
+aws logs tail local/laravel_app --follow
 ```

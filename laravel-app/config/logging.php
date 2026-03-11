@@ -136,7 +136,7 @@ return [
                 'secret' => env('CW_SECRET_ACCESS_KEY', 'test'),
                 'endpoint' => env('CW_ENDPOINT_URL', 'http://localstack:4566'),
             ],
-            'stream_name' => env('CW_LOG_NAME', 'laravel_app'),
+            'stream_name' => env('CW_STREAM_NAME', 'laravel_app'),
             'retention' => env('CW_LOG_RETENTION_DAYS', 14),
             'group_name' => env('CW_LOG_GROUP_NAME', 'laravel_app'),
             'version' => env('CW_LOG_VERSION', 'latest'),

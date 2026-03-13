@@ -1,11 +1,11 @@
-import logging
 from chalice import Chalice, Response
 from datetime import datetime
+from chaliblib.utils.log import Logger, ConsoleHandler, JsonHandler
 
 app = Chalice(app_name='chalice-app')
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger = Logger(app_name=__name__, handler=ConsoleHandler())
+# logger = Logger(app_name=__name__, handler=JsonHandler())
 
 @app.route('/', methods=['GET'], cors=True)
 def index():
@@ -28,7 +28,7 @@ def test_logs():
 
 @app.route('/logs-with-context', methods=['POST'], cors=True)
 def test_logs_with_context():
-    body = app.current_request.json_body
+    body = app.current_request.json_body or {}
 
     param_1 = body.get("param_1", "default_value_1")
     param_2 = body.get("param_2", "default_value_2")
@@ -39,7 +39,7 @@ def test_logs_with_context():
         "timestamp": datetime.utcnow().isoformat()
     }
 
-    logger.debug("", extra=context)
+    logger.debug("Log with context", extra=context)
 
     return Response(
         body={"message": "Log with context created successfully."},
